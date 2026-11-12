@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "Coatepec_Parcels_Calculated",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1, "name": "Parcel 101", "land_use": "Residential", "area_m2": 1250, "calculated_m2": 139532.55 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -96.968, 19.448 ], [ -96.964, 19.448 ], [ -96.964, 19.451 ], [ -96.968, 19.451 ], [ -96.968, 19.448 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 2, "name": "Parcel 102", "land_use": null, "area_m2": null, "calculated_m2": 139533.17 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -96.964, 19.448 ], [ -96.96, 19.448 ], [ -96.96, 19.451 ], [ -96.964, 19.451 ], [ -96.964, 19.448 ] ] ] } },
+{ "type": "Feature", "properties": { "fid": 3, "name": "Parcel 103", "land_use": null, "area_m2": null, "calculated_m2": 139530.02 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -96.968, 19.451 ], [ -96.964, 19.451 ], [ -96.964, 19.454 ], [ -96.968, 19.454 ], [ -96.968, 19.451 ] ] ] } }
+]
+}

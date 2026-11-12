@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add a vector tile source</title>
+    <meta property="og:description" content="Add a vector source to a map." />
+    <meta property="og:category" content="Vector & GeoJSON" />
+    <meta property="og:order" content="1" />
+    <meta property="og:created" content="2025-06-25" />
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css' />
+
+    <style>
+        body { margin: 0; padding: 0; }
+        html, body, #map { height: 100%; }
+    .map-title {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 18px;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: #203040;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.map-legend {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 18px;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #203040;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+	</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="map-legend">
+    <strong>Map Legend</strong>
+    <p>🟩 Parcels</p>
+    <p> <span style="color: blue; font-weight: bold;">━━━━</span> Survey Line</p>
+    <p>🔴 Location Marker</p>
+</div>
+<div class="map-title">
+  <strong>Coatepec Parcel Mapping &amp; Area Analysis</strong>
+  <div style="font-size: 11px; font-weight: normal; color: #666; margin-top: 5px;">
+    Portfolio demonstration — illustrative boundaries and survey line; not for legal, cadastral, or engineering use.
+  </div>
+</div>
+<script type="module">
+    import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
+
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://tiles.openfreemap.org/styles/bright',
+        zoom: 13,
+        center: [-96.962, 19.454]
+    });
+	map.fitBounds(
+    [
+        [-96.972, 19.445],
+        [-96.956, 19.458]
+    ],
+    {
+        padding: 100,
+        duration: 0
+    }
+);
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+map.addControl(new maplibregl.ScaleControl({ maxWidth: 150, unit: 'metric' }), 'bottom-right');
+
+map.on('load', () => {
+    map.addSource('coatepec-point', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [-96.962, 19.454]
+            },
+            properties: {
+                name: 'Coatepec'
+            }
+        }
+    });
+
+    map.addLayer({
+        id: 'coatepec-marker',
+        type: 'circle',
+        source: 'coatepec-point',
+        paint: {
+            'circle-radius': 10,
+            'circle-color': '#ff0000',
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2
+        }
+    });
+
+    map.on('click', 'coatepec-marker', (e) => {
+        new maplibregl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML('<strong>Coatepec, Veracruz, Mexico</strong>')
+            .addTo(map);
+    });
+
+
+    map.addSource('survey-line', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            geometry: {
+                type: 'LineString',
+                coordinates: [
+                    [-96.970, 19.450],
+                    [-96.965, 19.455],
+                    [-96.958, 19.458]
+                ]
+            },
+            properties: {
+                name: 'Sample Survey Alignment'
+            }
+        }
+    });
+
+    map.addLayer({
+        id: 'survey-line-layer',
+        type: 'line',
+        source: 'survey-line',
+        paint: {
+            'line-color': '#0000ff',
+            'line-width': 4
+        }
+    });
+
+
+  map.addSource('sample-parcel', {
+    type: 'geojson',
+    data: 'Coatepec_Parcels_Calculated.geojson',
+    promoteId: 'fid'
+});
+
+    map.addLayer({
+        id: 'parcel-fill',
+        type: 'fill',
+        source: 'sample-parcel',
+        paint: {
+            'fill-color': '#00aa00',
+        'fill-opacity': [
+    'case',
+    ['boolean', ['feature-state', 'hover'], false],
+    0.7,
+    0.35
+]
+        }
+    });
+
+    map.addLayer({
+        id: 'parcel-outline',
+        type: 'line',
+        source: 'sample-parcel',
+        paint: {
+            'line-color': '#006600',
+            'line-width': 3
+        }
+    });
+map.addLayer({
+    id: 'parcel-labels',
+    type: 'symbol',
+    source: 'sample-parcel',
+    layout: {
+        'text-field': ['get', 'name'],
+        'text-size': 15,
+        'text-anchor': 'center',
+        'text-allow-overlap': true
+    },
+    paint: {
+        'text-color': '#003300',
+        'text-halo-color': '#ffffff',
+        'text-halo-width': 2
+    }
+});
+
+let hoveredParcelId = null;
+
+map.on('mousemove', 'parcel-fill', (e) => {
+ map.getCanvas().style.cursor = 'pointer';
+ if (e.features.length > 0) {
+        if (hoveredParcelId !== null) {
+            map.setFeatureState(
+                { source: 'sample-parcel', id: hoveredParcelId },
+                { hover: false }
+            );
+        }
+
+        hoveredParcelId = e.features[0].id;
+
+        map.setFeatureState(
+            { source: 'sample-parcel', id: hoveredParcelId },
+            { hover: true }
+        );
+    }
+});
+
+map.on('mouseleave', 'parcel-fill', () => {
+map.getCanvas().style.cursor = '';
+    if (hoveredParcelId !== null) {
+        map.setFeatureState(
+            { source: 'sample-parcel', id: hoveredParcelId },
+            { hover: false }
+        );
+    }
+
+    hoveredParcelId = null;
+});   
+   map.on('click', 'parcel-fill', (e) => {
+        new maplibregl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML('<strong>' + e.features[0].properties.name + '</strong><br>Land Use: ' + (e.features[0].properties.land_use || 'Not specified') + '<br>Area: ' + (e.features[0].properties.calculated_m2 != null ? e.features[0].properties.calculated_m2.toLocaleString() + ' m²' : 'Not specified'))
+            .addTo(map);
+    });
+
+});
+
+
+</script>
+</body>
+</html>
